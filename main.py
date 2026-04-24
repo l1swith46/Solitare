@@ -92,13 +92,14 @@ def get_cursor_input(cursor_pos):
     """Get user input for cursor movement and actions"""
     print("\nControls:")
     print("  q - Draw from stock")
-    print("  a - Move cursor left")
-    print("  d - Move cursor right") 
-    print("  w - Move cursor up")
-    print("  s - Move cursor down")
+    print("  a - Move cursor up")
+    print("  d - Move cursor down") 
+    print("  w - Move cursor left")
+    print("  s - Move cursor right")
     print("  e - Move selected card to waste position")
     print("  t - Move selected card to foundation")
     print("  m - Move selected card to another tableau column")
+    print("  r - Move card from waste to tableau")
     print("  p - Quit")
     print(f"Current cursor: {cursor_pos}")
     return input("Enter command: ").strip().lower()
@@ -108,8 +109,7 @@ def move_cursor(cursor_pos, cursor_card_idx, direction, tableau):
     positions = ["stock", "waste", "f0", "f1", "f2", "f3", "c0", "c1", "c2", "c3", "c4", "c5", "c6"]
     
     if cursor_pos not in positions:
-        return "c0", 0  # Default to first column, first card
-    
+        return "c0", 0  # Default to first column, first card   
     current_idx = positions.index(cursor_pos)
     
     if direction in ["left", "right"]:
@@ -242,6 +242,27 @@ def main():
                     foundations[suit_idx].append(waste.pop())
                     continue
             print("Cannot move to foundation")
+        elif command == 'r':
+            # Move card from waste to tableau
+            if cursor_pos == 'waste' and waste:
+                card = waste[-1]
+                try:
+                    dest_col = int(input("Move to which column (1-7)? ").strip()) - 1
+                    if 0 <= dest_col < 7:
+                        to_pile = tableau[dest_col]
+                        
+                        if can_place_on_tableau(card, to_pile):
+                            to_pile.append((card, True))
+                            waste.pop()
+                            print(f"Moved {card} to column {dest_col + 1}")
+                        else:
+                            print("Invalid move - cards must be placed on opposite color and one rank lower, or King on empty column")
+                    else:
+                        print("Invalid column number")
+                except ValueError:
+                    print("Please enter a valid column number (1-7)")
+            else:
+                print("No card in waste to move")
         elif command == 'm':
             # Move selected card/sequence to another tableau column
             if cursor_pos.startswith('c'):
